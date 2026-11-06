@@ -1,0 +1,6 @@
+{
+  "name": "vadirn.io — Agnostic Vibe Coder",
+  "description": "Personal space, technical essays, and experimental projects of Vadirn — an agnostic, curiosity-driven vibe coder exploring sub-16ms latency, agentic systems, and creative engineering.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>AB Peace — Agnostic Vibe Coder &amp; Systems Hacker</title>
+  <link>https://abpeace.dev/</link>
+  <description>Original dispatches on vibe coding, sub-10ms latency loops, context poisoning, and bespoke engineering craft in late 2026 by AB Peace.</description>
+  <language>en-us</language>
+  <lastBuildDate>Sat, 24 Oct 2026 12:00:00 GMT</lastBuildDate>
+  <atom:link href="https://vadirn.io/rss.xml" rel="self" type="application/rss+xml" />
+
+  <item>
+    <title>The 2026 Phase Shift: Why I Stopped Writing Code by Hand</title>
+    <link>https://vadirn.io/#blog-the-2026-phase-shift</link>
+    <guid isPermaLink="true">https://vadirn.io/#blog-the-2026-phase-shift</guid>
+    <pubDate>Sat, 24 Oct 2026 00:00:00 GMT</pubDate>
+    <category>Architecture</category>
+    <category>Philosophy</category>
+    <description><![CDATA[We spent thirty years treating keystrokes as the coin of engineering realm. In late 2026, when implementation cost is effectively zero, architecture and taste are the only things left standing.]]></description>
+  </item>
+
+  <item>
+    <title>The Sub-10ms Feedback Loop: Playing Code Like an Instrument</title>
+    <link>https://vadirn.io/#blog-sub-10ms-feedback-loop</link>
+    <guid isPermaLink="true">https://vadirn.io/#blog-sub-10ms-feedback-loop</guid>
+    <pubDate>Fri, 18 Sep 2026 00:00:00 GMT</pubDate>
+    <category>Latency</category>
+    <category>HCI</category>
+    <description><![CDATA[Why waiting 15 seconds for an AI response induces cognitive death, and how multi-branch speculative execution turns software creation into improvisational jazz.]]></description>
+  </item>
+
+  <item>
+    <title>Context Poisoning and The Art of Strategic Forgetting</title>
+    <link>https://vadirn.io/#blog-context-poisoning-strategic-forgetting</link>
+    <guid isPermaLink="true">https://vadirn.io/#blog-context-poisoning-strategic-forgetting</guid>
+    <pubDate>Sat, 29 Aug 2026 00:00:00 GMT</pubDate>
+    <category>AI &amp; Agents</category>
+    <category>Systems</category>
+    <description><![CDATA[Frontier models in late 2026 advertise multi-million token context windows. In reality, large contexts make models stupid. Here is how I build systems that aggressively forget.]]></description>
+  </item>
+
+  <item>
+    <title>In Praise of Bespoke Digital Artifacts in the Age of Infinite Slop</title>
+    <link>https://vadirn.io/#blog-in-praise-of-bespoke-artifacts</link>
+    <guid isPermaLink="true">https://vadirn.io/#blog-in-praise-of-bespoke-artifacts</guid>
+    <pubDate>Tue, 14 Jul 2026 00:00:00 GMT</pubDate>
+    <category>Aesthetics</category>
+    <category>Craft</category>
+    <description><![CDATA[When AI can generate an entire corporate SaaS platform in forty seconds, generic software becomes worthless. The future belongs to hyper-specific, weird personal tools built with love.]]></description>
+  </item>
+</channel>
+</rss>
