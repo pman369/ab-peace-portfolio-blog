@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { BLOG_POSTS } from '../data/posts';
 import { sound } from '../utils/audio';
+import { getAllArticles } from '../utils/articleStore';
 
 interface RssModalProps {
   isOpen: boolean;
@@ -11,6 +11,7 @@ export function RssModal({ isOpen, onClose }: RssModalProps) {
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedXml, setCopiedXml] = useState(false);
   const feedUrl = `${window.location.origin}/rss.xml`;
+  const articles = getAllArticles();
 
   if (!isOpen) return null;
 
@@ -23,7 +24,7 @@ export function RssModal({ isOpen, onClose }: RssModalProps) {
   <language>en-us</language>
   <lastBuildDate>Sat, 24 Oct 2026 12:00:00 GMT</lastBuildDate>
   <atom:link href="/rss.xml" rel="self" type="application/rss+xml" />
-${BLOG_POSTS.map(
+${articles.map(
   (p) => `  <item>
     <title>${p.title}</title>
     <link>/#blog-${p.slug}</link>
@@ -123,9 +124,9 @@ ${BLOG_POSTS.map(
         {/* Feed Entries Preview */}
         <div className="my-5 space-y-3 max-h-64 overflow-y-auto pr-1">
           <div className="text-xs font-mono text-zinc-500 uppercase tracking-wider">
-            Included Dispatches ({BLOG_POSTS.length})
+            Included Dispatches ({articles.length})
           </div>
-          {BLOG_POSTS.map((post) => (
+          {articles.map((post) => (
             <div
               key={post.id}
               className="p-3.5 rounded-xl border border-zinc-800/80 bg-zinc-900/30 text-xs space-y-1"

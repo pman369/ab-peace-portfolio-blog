@@ -1,13 +1,16 @@
-import { useState } from 'react';
-import { BLOG_POSTS } from '../data/posts';
+import { useState, useEffect } from 'react';
 import { BlogPost } from '../types';
 import { sound } from '../utils/audio';
+import { getAllArticles, deleteCustomArticle, exportArticleAsMarkdown } from '../utils/articleStore';
+import { LazyImage } from './LazyImage';
 
 interface BlogProps {
   onOpenRss?: () => void;
+  onOpenStudio?: () => void;
 }
 
-export function Blog({ onOpenRss }: BlogProps) {
+export function Blog({ onOpenRss, onOpenStudio }: BlogProps) {
+  const [articles, setArticles] = useState<BlogPost[]>(() => getAllArticles());
   const [activePost, setActivePost] = useState<BlogPost | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedCodeIndex, setCopiedCodeIndex] = useState<number | null>(null);
@@ -18,6 +21,19 @@ export function Blog({ onOpenRss }: BlogProps) {
       return [];
     }
   });
+
+  // Sync with custom local storage updates from AuthoringStudio
+  useEffect(() => {
+    const handleUpdate = () => {
+      setArticles(getAllArticles());
+    };
+    window.addEventListener('abpeace_articles_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('abpeace_articles_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   const toggleBookmark = (id: string) => {
     sound.playBlip();
@@ -39,7 +55,24 @@ export function Blog({ onOpenRss }: BlogProps) {
     setTimeout(() => setCopiedCodeIndex(null), 2000);
   };
 
-  const filteredPosts = BLOG_POSTS.filter((post) => {
+  const handleDeletePost = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this custom dispatch?')) {
+      deleteCustomArticle(id);
+      setArticles(getAllArticles());
+      if (activePost?.id === id) {
+        setActivePost(null);
+      }
+    }
+  };
+
+  const handleDownloadDoc = (post: BlogPost, e: React.MouseEvent) => {
+    e.stopPropagation();
+    sound.playClick();
+    exportArticleAsMarkdown(post);
+  };
+
+  const filteredPosts = articles.filter((post) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -63,8 +96,25 @@ export function Blog({ onOpenRss }: BlogProps) {
             </h2>
           </div>
 
-          {/* Search Input & RSS Button */}
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          {/* Search Input, Studio & RSS Buttons */}
+          <div className="flex items-center gap-2.5 w-full md:w-auto flex-wrap">
+            {onOpenStudio && (
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  onOpenStudio();
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-mono text-emerald-300 hover:text-white bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-800/60 rounded-lg transition-colors shrink-0"
+                title="Write new article or upload document (⌘E)"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Compose / Studio</span>
+              </button>
+            )}
+
             {onOpenRss && (
               <button
                 type="button"
@@ -91,7 +141,7 @@ export function Blog({ onOpenRss }: BlogProps) {
                 <span>RSS</span>
               </button>
             )}
-            <div className="w-full md:w-64">
+            <div className="w-full md:w-56">
               <input
                 type="text"
                 placeholder="Search essays or tags..."
@@ -105,52 +155,102 @@ export function Blog({ onOpenRss }: BlogProps) {
 
         {/* Post List */}
         <div className="divide-y divide-zinc-900">
-          {filteredPosts.map((post) => {
-            const isBookmarked = bookmarkedIds.includes(post.id);
-            return (
-              <article
-                key={post.id}
-                className="py-8 first:pt-0 last:pb-0 group cursor-pointer"
-                onClick={() => {
-                  sound.playClick();
-                  setActivePost(post);
-                }}
-              >
-                <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-4 mb-3">
-                  <h3 className="text-xl sm:text-2xl font-display font-semibold text-zinc-100 group-hover:text-white transition-colors [text-wrap:balance]">
-                    {post.title}
-                  </h3>
+          {filteredPosts.length === 0 ? (
+            <div className="py-12 text-center text-xs font-mono text-zinc-500">
+              No matching essays found. Click "Compose / Studio" above to publish your first article.
+            </div>
+          ) : (
+            filteredPosts.map((post) => {
+              const isBookmarked = bookmarkedIds.includes(post.id);
+              return (
+                <article
+                  key={post.id}
+                  className="py-8 first:pt-0 last:pb-0 group cursor-pointer"
+                  onClick={() => {
+                    sound.playClick();
+                    setActivePost(post);
+                  }}
+                >
+                  <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-4 mb-3">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <h3 className="text-xl sm:text-2xl font-display font-semibold text-zinc-100 group-hover:text-white transition-colors [text-wrap:balance]">
+                        {post.title}
+                      </h3>
+                      {post.isUserCreated && (
+                        <span className="text-[10px] font-mono text-emerald-400 border border-emerald-900/80 bg-emerald-950/30 px-2 py-0.5 rounded">
+                          Custom Dispatch
+                        </span>
+                      )}
+                    </div>
 
-                  {/* Clean unboxed metadata with typographic separators */}
-                  <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 shrink-0">
-                    <span>{post.readTime}</span>
-                    <span aria-hidden="true" className="text-zinc-700">·</span>
-                    <span>{post.date}</span>
+                    {/* Clean unboxed metadata with typographic separators */}
+                    <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 shrink-0">
+                      <span>{post.readTime}</span>
+                      <span aria-hidden="true" className="text-zinc-700">·</span>
+                      <span>{post.date}</span>
+                    </div>
                   </div>
-                </div>
 
-                <p className="text-sm text-zinc-400 leading-relaxed mb-4 max-w-3xl">
-                  {post.excerpt}
-                </p>
+                  {post.coverImage && (
+                    <div className="mb-4 max-w-2xl">
+                      <LazyImage
+                        src={post.coverImage}
+                        alt={post.coverImageAlt || post.title}
+                        aspectRatio="aspect-[21/9]"
+                        containerClassName="relative w-full overflow-hidden bg-zinc-950/80 rounded-xl border border-zinc-800/60 group-hover:border-zinc-700 transition-colors"
+                      />
+                    </div>
+                  )}
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs text-zinc-400 font-mono">
-                    {post.tags.map((tag, idx) => (
-                      <span key={tag} className="flex items-center gap-2">
-                        <span>{tag}</span>
-                        {idx < post.tags.length - 1 && <span aria-hidden="true" className="text-zinc-700">·</span>}
+                  <p className="text-sm text-zinc-400 leading-relaxed mb-4 max-w-3xl">
+                    {post.excerpt}
+                  </p>
+
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-2 text-xs text-zinc-400 font-mono">
+                      {post.tags.map((tag, idx) => (
+                        <span key={tag} className="flex items-center gap-2">
+                          <span>{tag}</span>
+                          {idx < post.tags.length - 1 && <span aria-hidden="true" className="text-zinc-700">·</span>}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {/* Document download button */}
+                      <button
+                        type="button"
+                        onClick={(e) => handleDownloadDoc(post, e)}
+                        className="text-xs font-mono text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1.5 px-2 py-1 rounded bg-zinc-900 border border-zinc-800"
+                        title="Download document as Markdown (.md)"
+                      >
+                        <svg className="w-3 h-3 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span>.md</span>
+                      </button>
+
+                      {post.isUserCreated && (
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeletePost(post.id, e)}
+                          className="text-xs font-mono text-red-400 hover:text-red-300 transition-colors px-2 py-1 rounded bg-red-950/20 border border-red-900/40"
+                          title="Delete this article"
+                        >
+                          Delete
+                        </button>
+                      )}
+
+                      <span className="text-xs font-medium text-zinc-400 group-hover:text-zinc-200 transition-colors flex items-center gap-1">
+                        <span>Read essay</span>
+                        <span className="font-mono">→</span>
                       </span>
-                    ))}
+                    </div>
                   </div>
-
-                  <span className="text-xs font-medium text-zinc-400 group-hover:text-zinc-200 transition-colors flex items-center gap-1">
-                    <span>Read essay</span>
-                    <span className="font-mono">→</span>
-                  </span>
-                </div>
-              </article>
-            );
-          })}
+                </article>
+              );
+            })
+          )}
         </div>
 
         {/* Immersive Reader View Modal */}
@@ -171,7 +271,19 @@ export function Blog({ onOpenRss }: BlogProps) {
                   <span>Back to all essays</span>
                 </button>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={(e) => handleDownloadDoc(activePost, e)}
+                    className="text-xs font-mono px-3 py-1.5 rounded-lg border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors flex items-center gap-1.5"
+                    title="Download this document as Markdown (.md)"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>Download .md</span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => toggleBookmark(activePost.id)}
@@ -215,6 +327,17 @@ export function Blog({ onOpenRss }: BlogProps) {
                     </span>
                   ))}
                 </div>
+
+                {activePost.coverImage && (
+                  <div className="mt-6">
+                    <LazyImage
+                      src={activePost.coverImage}
+                      alt={activePost.coverImageAlt || activePost.title}
+                      aspectRatio="aspect-[21/9]"
+                      containerClassName="relative w-full overflow-hidden bg-zinc-950 rounded-xl border border-zinc-800 shadow-xl"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Table of contents bar */}
@@ -236,6 +359,26 @@ export function Blog({ onOpenRss }: BlogProps) {
               {/* Body Prose */}
               <div className="space-y-6 text-zinc-300 leading-relaxed text-base">
                 {activePost.content.map((paragraph, idx) => {
+                  if (paragraph.startsWith('![')) {
+                    const match = paragraph.match(/^!\[(.*?)\]\((.*?)\)$/);
+                    if (match) {
+                      return (
+                        <div key={idx} className="my-6">
+                          <LazyImage
+                            src={match[2]}
+                            alt={match[1] || 'Article visual artifact'}
+                            aspectRatio="aspect-[16/9]"
+                            containerClassName="relative w-full overflow-hidden bg-zinc-950 rounded-xl border border-zinc-800 shadow-md"
+                          />
+                          {match[1] && (
+                            <span className="block text-center text-xs font-mono text-zinc-500 mt-2">
+                              {match[1]}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    }
+                  }
                   if (paragraph.startsWith('## ')) {
                     return (
                       <h2

@@ -13,6 +13,10 @@ export function InteractiveBackground({ interactive = true }: InteractiveBackgro
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const isMobile = window.innerWidth < 768;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
     let animationFrameId: number;
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
@@ -25,22 +29,22 @@ export function InteractiveBackground({ interactive = true }: InteractiveBackgro
 
     window.addEventListener('resize', handleResize);
 
-    // Particle nodes for subtle ambient flow
-    const particleCount = Math.min(32, Math.floor(width / 45));
-    const particles = Array.from({ length: particleCount }, () => ({
+    // Particle nodes: lightweight on mobile (max 12) vs desktop (max 30)
+    const particleCount = isMobile ? Math.min(12, Math.floor(width / 60)) : Math.min(30, Math.floor(width / 45));
+    const particles = Array.from({ length: Math.max(6, particleCount) }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.35,
-      vy: (Math.random() - 0.5) * 0.35,
-      radius: Math.random() * 1.5 + 0.8,
-      baseAlpha: Math.random() * 0.25 + 0.1,
+      vx: (Math.random() - 0.5) * (isMobile ? 0.2 : 0.35),
+      vy: (Math.random() - 0.5) * (isMobile ? 0.2 : 0.35),
+      radius: Math.random() * 1.4 + 0.7,
+      baseAlpha: Math.random() * 0.22 + 0.08,
     }));
 
     let mouseX = -1000;
     let mouseY = -1000;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!interactive) return;
+      if (!interactive || isMobile) return;
       mouseX = e.clientX;
       mouseY = e.clientY;
     };
@@ -50,20 +54,32 @@ export function InteractiveBackground({ interactive = true }: InteractiveBackgro
       mouseY = -1000;
     };
 
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    window.addEventListener('mouseleave', handleMouseLeave);
+    if (!isMobile) {
+      window.addEventListener('mousemove', handleMouseMove, { passive: true });
+      window.addEventListener('mouseleave', handleMouseLeave);
+    }
 
     let lastTime = performance.now();
+    const targetFpsInterval = isMobile ? 1000 / 30 : 1000 / 60; // 30fps on mobile to preserve battery & GPU cycles
+    let lastDrawTime = performance.now();
 
     const render = (currentTime: number) => {
+      if (document.hidden) {
+        animationFrameId = requestAnimationFrame(render);
+        return;
+      }
+
+      const elapsed = currentTime - lastDrawTime;
+      if (elapsed < targetFpsInterval) {
+        animationFrameId = requestAnimationFrame(render);
+        return;
+      }
+
+      lastDrawTime = currentTime - (elapsed % targetFpsInterval);
       const dt = Math.min((currentTime - lastTime) / 1000, 0.1);
       lastTime = currentTime;
 
       ctx.clearRect(0, 0, width, height);
-
-      // Subtle ambient vignette grid lines
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.015)';
-      ctx.lineWidth = 1;
 
       // Draw particles & subtle connection lines
       for (let i = 0; i < particles.length; i++) {
@@ -78,13 +94,15 @@ export function InteractiveBackground({ interactive = true }: InteractiveBackgro
         if (p.y > height) p.y = 0;
 
         // Mouse avoidance/attraction ripple
-        const dx = mouseX - p.x;
-        const dy = mouseY - p.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 140 && dist > 0) {
-          const force = (1 - dist / 140) * 1.5;
-          p.x -= (dx / dist) * force;
-          p.y -= (dy / dist) * force;
+        if (!isMobile && mouseX > -500) {
+          const dx = mouseX - p.x;
+          const dy = mouseY - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 130 && dist > 0) {
+            const force = (1 - dist / 130) * 1.4;
+            p.x -= (dx / dist) * force;
+            p.y -= (dy / dist) * force;
+          }
         }
 
         ctx.fillStyle = `rgba(161, 161, 170, ${p.baseAlpha})`;
@@ -93,14 +111,15 @@ export function InteractiveBackground({ interactive = true }: InteractiveBackgro
         ctx.fill();
 
         // Connect nearby nodes
+        const maxDist = isMobile ? 90 : 120;
         for (let j = i + 1; j < particles.length; j++) {
           const p2 = particles[j];
           const cdx = p.x - p2.x;
           const cdy = p.y - p2.y;
           const cdist = Math.sqrt(cdx * cdx + cdy * cdy);
 
-          if (cdist < 130) {
-            const lineAlpha = (1 - cdist / 130) * 0.06;
+          if (cdist < maxDist) {
+            const lineAlpha = (1 - cdist / maxDist) * 0.05;
             ctx.strokeStyle = `rgba(161, 161, 170, ${lineAlpha})`;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
@@ -118,8 +137,10 @@ export function InteractiveBackground({ interactive = true }: InteractiveBackgro
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseleave', handleMouseLeave);
+      if (!isMobile) {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseleave', handleMouseLeave);
+      }
     };
   }, [interactive]);
 

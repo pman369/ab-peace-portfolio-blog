@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { BLOG_POSTS } from '../data/posts';
 import { sound } from '../utils/audio';
+import { getAllArticles } from '../utils/articleStore';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -8,6 +8,7 @@ interface CommandPaletteProps {
   onToggleParticles: () => void;
   onNavigateToNow: () => void;
   onOpenRss: () => void;
+  onOpenStudio?: () => void;
   particlesEnabled: boolean;
 }
 
@@ -17,6 +18,7 @@ export function CommandPalette({
   onToggleParticles,
   onNavigateToNow,
   onOpenRss,
+  onOpenStudio,
   particlesEnabled,
 }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
@@ -34,12 +36,22 @@ export function CommandPalette({
   // Build command list based on query
   const navigationItems = [
     { id: 'nav-now', label: 'Go to Now Page (Current explorations & rituals)', action: () => onNavigateToNow() },
-    { id: 'nav-about', label: 'Go to About', action: () => (window.location.hash = '#about') },
-    { id: 'nav-blog', label: 'Go to Blog', action: () => (window.location.hash = '#blog') },
+    { id: 'nav-about', label: 'Go to About section', action: () => (window.location.hash = '#about') },
+    { id: 'nav-research', label: 'Go to Research Library & Whitepapers', action: () => (window.location.hash = '#research') },
+    { id: 'nav-blog', label: 'Go to Blog (Dispatches & Technical Essays)', action: () => (window.location.hash = '#blog') },
     { id: 'nav-contact', label: 'Go to Contact / Work with Me', action: () => (window.location.hash = '#contact') },
   ];
 
   const utilityItems = [
+    ...(onOpenStudio
+      ? [
+          {
+            id: 'util-open-studio',
+            label: 'Authoring Studio: Write Article / Share Document (⌘E)',
+            action: () => onOpenStudio(),
+          },
+        ]
+      : []),
     {
       id: 'util-open-rss',
       label: 'Open Blog RSS Feed (/rss.xml)',
@@ -55,7 +67,7 @@ export function CommandPalette({
     },
     {
       id: 'util-toggle-particles',
-      label: `${particlesEnabled ? 'Disable' : 'Enable'} ambient particles`,
+      label: `${particlesEnabled ? 'Disable' : 'Enable'} ambient particles (Performance)`,
       action: () => {
         onToggleParticles();
         sound.playClick();
@@ -68,9 +80,10 @@ export function CommandPalette({
     },
   ];
 
-  const blogItems = BLOG_POSTS.map((b) => ({
+  const articles = getAllArticles();
+  const blogItems = articles.map((b) => ({
     id: `post-${b.id}`,
-    label: `Essay: ${b.title}`,
+    label: `Essay: ${b.title}${b.isUserCreated ? ' [Custom]' : ''}`,
     action: () => {
       window.location.hash = '#blog';
     },

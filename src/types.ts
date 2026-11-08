@@ -1,8 +1,6 @@
 /**
- * Core types for vadirn.io
+ * Core types for AB Peace website
  */
-
-export type ProjectCategory = 'all' | 'ai-agents' | 'creative-shaders' | 'systems' | 'micro-tools';
 
 export interface GitHubStats {
   stars: number;
@@ -45,6 +43,32 @@ export interface BlogPost {
   tags: string[];
   content: string[];
   tableOfContents: { id: string; title: string }[];
+  isUserCreated?: boolean;
+  author?: string;
+  coverImage?: string;
+  coverImageAlt?: string;
+}
+
+export interface ResearchPaper {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string;
+  industryGap: string;
+  keyBenchmark: string;
+  date: string;
+  readTime: string;
+  category: 'AI & Inference' | 'Edge & Systems' | 'HCI & Graphics';
+  tags: string[];
+  executiveSummary: string;
+  sections: {
+    title: string;
+    paragraphs: string[];
+    codeSnippet?: string;
+  }[];
+  interactiveTool?: 'ast-pruner' | 'crdt-mesh' | 'spatial-gpu';
+  coverImage?: string;
+  coverImageAlt?: string;
 }
 
 export interface ContactSubmission {

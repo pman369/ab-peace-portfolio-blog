@@ -10,6 +10,8 @@ export const BLOG_POSTS: BlogPost[] = [
     date: 'October 24, 2026',
     readTime: '8 min read',
     tags: ['Architecture', 'Philosophy', 'Engineering Culture'],
+    coverImage: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1200&q=80',
+    coverImageAlt: 'Abstract matrix of glowing computational logic representing software architecture without manual transcription',
     tableOfContents: [
       { id: 'death-of-transcription', title: '1. The Death of Transcription' },
       { id: 'cognitive-debt', title: '2. The Hidden Tax of Generated Complexity' },
@@ -42,6 +44,8 @@ export const BLOG_POSTS: BlogPost[] = [
     date: 'September 18, 2026',
     readTime: '6 min read',
     tags: ['Latency', 'HCI', 'Creative Systems'],
+    coverImage: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=1200&q=80',
+    coverImageAlt: 'Oscillating waveform resonance curves demonstrating sub-10 millisecond tactile haptic response',
     tableOfContents: [
       { id: 'biology-of-hesitation', title: '1. The Biology of Hesitation' },
       { id: 'speculative-branching', title: '2. Multi-Branch Speculative Execution' },
@@ -72,6 +76,8 @@ export const BLOG_POSTS: BlogPost[] = [
     date: 'August 29, 2026',
     readTime: '7 min read',
     tags: ['AI & Agents', 'Context Engineering', 'Systems'],
+    coverImage: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
+    coverImageAlt: 'Network topology and interconnected server racks representing clean context routing and AST pruning',
     tableOfContents: [
       { id: 'the-million-token-mirage', title: '1. The Million-Token Mirage' },
       { id: 'attention-diffusion', title: '2. Understanding Attention Diffusion' },
@@ -103,6 +109,8 @@ export const BLOG_POSTS: BlogPost[] = [
     date: 'July 14, 2026',
     readTime: '6 min read',
     tags: ['Aesthetics', 'Craft', 'Personal Web'],
+    coverImage: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
+    coverImageAlt: 'Microprocessor circuitry and bespoke handcrafted hardware reflecting personal craft and utility',
     tableOfContents: [
       { id: 'the-infinite-slop-machine', title: '1. The Infinite Slop Machine' },
       { id: 'collapse-of-generic-software', title: '2. The Collapse of Generic Software' },

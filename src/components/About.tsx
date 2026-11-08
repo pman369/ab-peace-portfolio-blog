@@ -1,3 +1,5 @@
+import { LazyImage } from './LazyImage';
+
 export function About() {
   const stackCategories = [
     {
@@ -60,11 +62,12 @@ export function About() {
           {/* Portrait Column */}
           <div className="lg:col-span-4 flex flex-col gap-6">
             <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 group">
-              <img
+              <LazyImage
                 src="/src/assets/images/vadirn_portrait_1793421493128.jpg"
                 alt="AB Peace in studio"
-                referrerPolicy="no-referrer"
+                aspectRatio="aspect-square"
                 className="w-full h-full object-cover grayscale contrast-125 transition-transform duration-500 group-hover:scale-102"
+                containerClassName="relative w-full h-full overflow-hidden"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent pointer-events-none" />
               <div className="absolute bottom-4 left-4 right-4 text-xs font-mono text-zinc-300 flex items-center justify-between">

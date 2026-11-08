@@ -4,6 +4,7 @@ import { sound } from '../utils/audio';
 interface NavbarProps {
   onOpenCommandPalette: () => void;
   onOpenRss: () => void;
+  onOpenStudio?: () => void;
   onNavigateToNow: () => void;
   onNavigateToHome: () => void;
   activeSection: string;
@@ -13,6 +14,7 @@ interface NavbarProps {
 export function Navbar({
   onOpenCommandPalette,
   onOpenRss,
+  onOpenStudio,
   onNavigateToNow,
   onNavigateToHome,
   activeSection,
@@ -39,6 +41,7 @@ export function Navbar({
   const navItems = [
     { label: 'About', href: '#about', isNow: false },
     { label: 'Now', href: '#now', isNow: true },
+    { label: 'Research', href: '#research', isNow: false },
     { label: 'Blog', href: '#blog', isNow: false },
     { label: 'Contact / Work with Me', href: '#contact', isNow: false },
   ];
@@ -95,7 +98,36 @@ export function Navbar({
         </nav>
 
         {/* Zone 3: 1 primary action and secondary utilities */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+          {/* Authoring Studio Button */}
+          {onOpenStudio && (
+            <button
+              type="button"
+              onClick={() => {
+                sound.playClick();
+                onOpenStudio();
+              }}
+              title="Open Authoring Studio (⌘E)"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-zinc-300 hover:text-white bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-xs font-mono transition-colors"
+              aria-label="Open In-browser Authoring Studio"
+            >
+              <svg
+                className="w-3.5 h-3.5 text-emerald-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
+              </svg>
+              <span className="hidden sm:inline">Studio</span>
+            </button>
+          )}
+
           {/* RSS Feed Button */}
           <button
             type="button"
@@ -157,7 +189,7 @@ export function Navbar({
               sound.playClick();
               if (isNowPage) onNavigateToHome();
             }}
-            className="px-4 py-2 text-xs font-medium text-zinc-950 bg-zinc-100 hover:bg-white rounded-lg transition-colors whitespace-nowrap shrink-0 shadow-sm"
+            className="px-3.5 sm:px-4 py-2 text-xs font-medium text-zinc-950 bg-zinc-100 hover:bg-white rounded-lg transition-colors whitespace-nowrap shrink-0 shadow-sm"
           >
             Work with Me
           </a>
