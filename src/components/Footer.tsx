@@ -87,6 +87,21 @@ export function Footer({ onOpenRss, onNavigateToNow, onNavigateToHome }: FooterP
           </button>
         </div>
       </div>
+
+      {/* Global Keyboard Navigation Bar Hint */}
+      <div className="max-w-6xl mx-auto px-6 mt-6 pt-6 border-t border-zinc-900/60 hidden sm:flex items-center justify-between text-[11px] font-mono text-zinc-600">
+        <div className="flex items-center gap-2">
+          <span>Keyboard Navigation:</span>
+          <kbd className="px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800/80 text-zinc-400">↑</kbd>
+          <kbd className="px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800/80 text-zinc-400">↓</kbd>
+          <span>Move between sections</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span><kbd className="px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800/80 text-zinc-400">⌘K</kbd> Command Palette</span>
+          <span className="text-zinc-800">·</span>
+          <span><kbd className="px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800/80 text-zinc-400">⌘E</kbd> Authoring Studio</span>
+        </div>
+      </div>
     </footer>
   );
 }

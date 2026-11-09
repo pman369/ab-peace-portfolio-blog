@@ -98,7 +98,7 @@ export function Hero({ onNavigateToNow }: HeroProps) {
   }, [activePreset]);
 
   return (
-    <section className="pt-32 pb-16 md:pt-40 md:pb-24 border-b border-zinc-900 relative">
+    <section id="hero" className="pt-32 pb-16 md:pt-40 md:pb-24 border-b border-zinc-900 relative scroll-mt-20">
       <div className="max-w-6xl mx-auto px-6">
         {/* Split Screen Hero */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">

@@ -35,6 +35,7 @@ export function CommandPalette({
 
   // Build command list based on query
   const navigationItems = [
+    { id: 'nav-top', label: 'Go to Top / Hero (Invariants & Latency)', action: () => { window.location.hash = '#hero'; window.scrollTo({ top: 0, behavior: 'smooth' }); } },
     { id: 'nav-now', label: 'Go to Now Page (Current explorations & rituals)', action: () => onNavigateToNow() },
     { id: 'nav-about', label: 'Go to About section', action: () => (window.location.hash = '#about') },
     { id: 'nav-research', label: 'Go to Research Library & Whitepapers', action: () => (window.location.hash = '#research') },

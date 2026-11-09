@@ -21,8 +21,31 @@ export default function App() {
   const [studioOpen, setStudioOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [particlesEnabled, setParticlesEnabled] = useState(true);
-  const [activeSection, setActiveSection] = useState('about');
+  const [activeSection, setActiveSection] = useState('hero');
   const [isNowPage, setIsNowPage] = useState(() => window.location.hash === '#now');
+  const [navToast, setNavToast] = useState<{
+    label: string;
+    direction: 'up' | 'down';
+    index: number;
+    total: number;
+  } | null>(null);
+
+  const SECTIONS = [
+    { id: 'hero', label: 'Top · Invariants & Latency' },
+    { id: 'about', label: 'About · Identity & Architecture' },
+    { id: 'research', label: 'Research · Living Whitepapers' },
+    { id: 'blog', label: 'Blog · Dispatches & Essays' },
+    { id: 'contact', label: 'Contact · Work with Me' },
+  ];
+
+  // Auto-dismiss keyboard navigation toast
+  useEffect(() => {
+    if (!navToast) return;
+    const timer = setTimeout(() => {
+      setNavToast(null);
+    }, 1600);
+    return () => clearTimeout(timer);
+  }, [navToast]);
 
   // Handle URL hash changes
   useEffect(() => {
@@ -48,26 +71,121 @@ export default function App() {
     }
   };
 
-  // Global Keyboard shortcuts: Cmd+K / Ctrl+K (Search), Cmd+E / Ctrl+E (Studio)
+  // Global Keyboard shortcuts & Arrow Key Section Navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // 1. Command Palette toggle: Cmd+K / Ctrl+K
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setCommandPaletteOpen((prev) => !prev);
-      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'e') {
+        return;
+      }
+
+      // 2. Authoring Studio toggle: Cmd+E / Ctrl+E
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'e') {
         e.preventDefault();
         handleOpenStudio();
+        return;
+      }
+
+      // 3. Arrow Keys Section Navigation
+      // Must ONLY execute when the command palette, modals, and text inputs are NOT active
+      if (
+        commandPaletteOpen ||
+        studioOpen ||
+        authModalOpen ||
+        rssModalOpen ||
+        isNowPage
+      ) {
+        return;
+      }
+
+      // Don't intercept if user is typing in a form input, textarea, or contentEditable element
+      const target = e.target as HTMLElement | null;
+      const tagName = target?.tagName?.toLowerCase();
+      if (
+        tagName === 'input' ||
+        tagName === 'textarea' ||
+        tagName === 'select' ||
+        target?.isContentEditable
+      ) {
+        return;
+      }
+
+      // Don't intercept if modifier keys (Cmd, Ctrl, Alt) are pressed
+      if (e.metaKey || e.ctrlKey || e.altKey) {
+        return;
+      }
+
+      // Don't intercept if an article reader or popup modal is open in the DOM
+      const isAnyModalOpen = Boolean(
+        document.querySelector('[role="dialog"]') ||
+        document.querySelector('.fixed.inset-0.z-50')
+      );
+      if (isAnyModalOpen) {
+        return;
+      }
+
+      const isNext = e.key === 'ArrowDown' || e.key === 'ArrowRight';
+      const isPrev = e.key === 'ArrowUp' || e.key === 'ArrowLeft';
+
+      if (!isNext && !isPrev) {
+        return;
+      }
+
+      // Calculate vertical positions of all sections
+      const currentScrollY = window.scrollY;
+      const sectionPositions = SECTIONS.map((sec, idx) => {
+        const el = document.getElementById(sec.id);
+        const top = el ? el.getBoundingClientRect().top + currentScrollY : 0;
+        return { ...sec, top, index: idx + 1 };
+      });
+
+      let targetSection: (typeof sectionPositions)[0] | null = null;
+
+      if (isNext) {
+        // Find next section whose top is at least 60px below current scroll position
+        targetSection = sectionPositions.find((sec) => sec.top > currentScrollY + 60) || null;
+      } else {
+        // Find previous section whose top is at least 60px above current scroll position
+        const previousSections = [...sectionPositions].reverse();
+        targetSection = previousSections.find((sec) => sec.top < currentScrollY - 60) || null;
+        if (!targetSection && currentScrollY > 40) {
+          targetSection = sectionPositions[0]; // Hero
+        }
+      }
+
+      if (targetSection) {
+        e.preventDefault();
+        const targetEl = document.getElementById(targetSection.id);
+        if (targetEl) {
+          const headerOffset = 64; // Navbar height
+          const targetY = targetEl.getBoundingClientRect().top + window.scrollY - headerOffset;
+          window.scrollTo({
+            top: Math.max(0, targetY),
+            behavior: 'smooth',
+          });
+          setActiveSection(targetSection.id);
+          sound.playClick();
+          setNavToast({
+            label: targetSection.label,
+            direction: isNext ? 'down' : 'up',
+            index: targetSection.index,
+            total: SECTIONS.length,
+          });
+        }
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [commandPaletteOpen, studioOpen, authModalOpen, rssModalOpen, isNowPage]);
 
   // Intersection Observer to track currently viewed section (when on home)
   useEffect(() => {
     if (isNowPage) return;
 
-    const sectionIds = ['about', 'research', 'blog', 'contact'];
+    const sectionIds = ['hero', 'about', 'research', 'blog', 'contact'];
     const observers: IntersectionObserver[] = [];
 
     sectionIds.forEach((id) => {
@@ -278,6 +396,25 @@ export default function App() {
 
       {/* RSS Feed Preview & Utility Modal */}
       <RssModal isOpen={rssModalOpen} onClose={() => setRssModalOpen(false)} />
+
+      {/* Keyboard Section Navigation HUD Indicator */}
+      {navToast && (
+        <aside
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-20 md:bottom-8 right-6 z-40 bg-zinc-950/95 backdrop-blur-md border border-zinc-800 text-zinc-200 px-3.5 py-2 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-150 font-mono text-xs pointer-events-none select-none"
+        >
+          <div className="w-6 h-6 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-emerald-400 font-bold text-xs">
+            {navToast.direction === 'down' ? '↓' : '↑'}
+          </div>
+          <div>
+            <div className="text-[10px] text-zinc-500 uppercase tracking-wider">
+              Section {navToast.index} of {navToast.total}
+            </div>
+            <div className="text-white font-medium">{navToast.label}</div>
+          </div>
+        </aside>
+      )}
     </div>
   );
 }
