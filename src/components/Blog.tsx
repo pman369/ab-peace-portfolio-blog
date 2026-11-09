@@ -3,6 +3,7 @@ import { BlogPost } from '../types';
 import { sound } from '../utils/audio';
 import { getAllArticles, deleteCustomArticle, exportArticleAsMarkdown } from '../utils/articleStore';
 import { LazyImage } from './LazyImage';
+import { isStudioAuthenticated } from '../utils/security';
 
 interface BlogProps {
   onOpenRss?: () => void;
@@ -57,6 +58,12 @@ export function Blog({ onOpenRss, onOpenStudio }: BlogProps) {
 
   const handleDeletePost = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isStudioAuthenticated()) {
+      if (onOpenStudio) {
+        onOpenStudio();
+      }
+      return;
+    }
     if (window.confirm('Are you sure you want to delete this custom dispatch?')) {
       deleteCustomArticle(id);
       setArticles(getAllArticles());

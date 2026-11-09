@@ -47,7 +47,7 @@ export function CommandPalette({
       ? [
           {
             id: 'util-open-studio',
-            label: 'Authoring Studio: Write Article / Share Document (⌘E)',
+            label: 'Authoring Studio: Write Article / Share Document [Secured] (⌘E)',
             action: () => onOpenStudio(),
           },
         ]

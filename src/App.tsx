@@ -11,12 +11,15 @@ import { CommandPalette } from './components/CommandPalette';
 import { NowPage } from './components/NowPage';
 import { RssModal } from './components/RssModal';
 import { AuthoringStudio } from './components/AuthoringStudio';
+import { StudioAuthModal } from './components/StudioAuthModal';
 import { sound } from './utils/audio';
+import { isStudioAuthenticated } from './utils/security';
 
 export default function App() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [rssModalOpen, setRssModalOpen] = useState(false);
   const [studioOpen, setStudioOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [particlesEnabled, setParticlesEnabled] = useState(true);
   const [activeSection, setActiveSection] = useState('about');
   const [isNowPage, setIsNowPage] = useState(() => window.location.hash === '#now');
@@ -36,6 +39,15 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Securely request studio access: check authentication or open security gate
+  const handleOpenStudio = () => {
+    if (isStudioAuthenticated()) {
+      setStudioOpen(true);
+    } else {
+      setAuthModalOpen(true);
+    }
+  };
+
   // Global Keyboard shortcuts: Cmd+K / Ctrl+K (Search), Cmd+E / Ctrl+E (Studio)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -44,7 +56,7 @@ export default function App() {
         setCommandPaletteOpen((prev) => !prev);
       } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'e') {
         e.preventDefault();
-        setStudioOpen((prev) => !prev);
+        handleOpenStudio();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -104,7 +116,7 @@ export default function App() {
       <Navbar
         onOpenCommandPalette={() => setCommandPaletteOpen(true)}
         onOpenRss={() => setRssModalOpen(true)}
-        onOpenStudio={() => setStudioOpen(true)}
+        onOpenStudio={handleOpenStudio}
         onNavigateToNow={navigateToNow}
         onNavigateToHome={navigateToHome}
         activeSection={activeSection}
@@ -122,7 +134,7 @@ export default function App() {
             <ResearchLibrary />
             <Blog
               onOpenRss={() => setRssModalOpen(true)}
-              onOpenStudio={() => setStudioOpen(true)}
+              onOpenStudio={handleOpenStudio}
             />
             <Contact />
           </>
@@ -207,7 +219,7 @@ export default function App() {
           type="button"
           onClick={() => {
             sound.playClick();
-            setStudioOpen(true);
+            handleOpenStudio();
           }}
           className="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] py-1 text-[11px] font-mono text-emerald-400 hover:text-emerald-300 transition-colors"
           title="Open Authoring Studio"
@@ -243,6 +255,16 @@ export default function App() {
         }}
       />
 
+      {/* Studio Secured Access Control Modal */}
+      <StudioAuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onAuthenticated={() => {
+          setAuthModalOpen(false);
+          setStudioOpen(true);
+        }}
+      />
+
       {/* Global Command Palette */}
       <CommandPalette
         isOpen={commandPaletteOpen}
@@ -250,7 +272,7 @@ export default function App() {
         onToggleParticles={() => setParticlesEnabled((p) => !p)}
         onNavigateToNow={navigateToNow}
         onOpenRss={() => setRssModalOpen(true)}
-        onOpenStudio={() => setStudioOpen(true)}
+        onOpenStudio={handleOpenStudio}
         particlesEnabled={particlesEnabled}
       />
 

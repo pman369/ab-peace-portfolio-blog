@@ -107,7 +107,7 @@ export function Navbar({
                 sound.playClick();
                 onOpenStudio();
               }}
-              title="Open Authoring Studio (⌘E)"
+              title="Authoring Studio · Protected Access (⌘E)"
               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-zinc-300 hover:text-white bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-xs font-mono transition-colors"
               aria-label="Open In-browser Authoring Studio"
             >
